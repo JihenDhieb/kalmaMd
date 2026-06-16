@@ -102,54 +102,84 @@ export default function PatientDashboardPage() {
   const { session } = useMockSession();
   const upcomingAppointment = appointments[0];
   const firstName = session.displayName.split(" ")[0] || session.displayName;
+  const initials = session.displayName
+    .split(" ")
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  const primaryActions = actionCards.slice(0, 3);
+  const secondaryActions = actionCards.slice(3);
 
   return (
-    <section className="mx-auto grid max-w-7xl gap-4 px-3 py-5 sm:px-5 lg:px-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight text-foreground">{t("patientDashboard.hello", { name: firstName })}</h1>
-        <p className="mt-1 text-sm text-stone-700">{t("patientDashboard.todayOverview")}</p>
-      </div>
+    <section className="mx-auto grid max-w-[92rem] gap-5 px-3 py-4 sm:px-5 lg:grid-cols-[18rem_1fr] lg:px-3">
+      <aside className="h-fit overflow-hidden rounded-[1.35rem] border border-stone-200 bg-white shadow-[0_18px_45px_rgba(58,58,58,0.10)]">
+        <div className="bg-primary-900 px-5 py-6 text-white">
+          <div className="grid size-16 place-items-center rounded-full border-[3px] border-white bg-primary-700 text-xl font-bold shadow-md">
+            {initials || "JD"}
+          </div>
+          <h2 className="mt-4 text-xl font-bold">{session.displayName}</h2>
+          <p className="mt-1 break-all text-sm text-primary-100">{session.email}</p>
+        </div>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {actionCards.map((action) => (
-          <article key={action.titleKey} className="min-h-[10.5rem] rounded-xl border border-stone-200 bg-white p-5 shadow-[0_8px_22px_rgba(67,61,56,0.08)]">
-            <div className="grid h-full grid-cols-[3rem_1fr] gap-4">
-              <span className={`grid size-11 shrink-0 place-items-center rounded-xl ${iconTone(action.tone)}`}>
-                <DashboardIcon icon={action.icon} />
+        <nav className="grid gap-1.5 px-4 py-4" aria-label={t("common.dashboard")}>
+          {[
+            { label: t("common.dashboard"), href: routes.patientDashboard, icon: "grid", active: true },
+            { label: t("common.blog"), href: routes.blog, icon: "document" },
+            { label: t("patientDashboard.symptomTracker"), href: routes.symptomTracker, icon: "pulse" },
+            { label: t("patientDashboard.viewLatestResult"), href: routes.results, icon: "chart" },
+            { label: t("common.bookConsultation"), href: routes.booking, icon: "people" },
+            { label: t("common.profile"), href: routes.patientProfile, icon: "user" },
+            { label: t("common.shop"), href: routes.patientShop, icon: "bag" },
+          ].map((item) => (
+            <Link
+              key={item.href}
+              className={`flex min-h-11 items-center gap-3 rounded-lg px-4 text-sm font-semibold transition-colors ${
+                item.active
+                  ? "bg-primary-50 text-primary-900"
+                  : "text-stone-700 hover:bg-stone-50 hover:text-primary-900"
+              }`}
+              href={item.href}
+            >
+              <span className="text-primary-700">
+                <DashboardIcon icon={item.icon} />
               </span>
-              <div className="flex min-w-0 flex-col">
-                <h2 className="text-base font-bold text-foreground">{t(action.titleKey)}</h2>
-                <p className="mt-1.5 text-sm leading-5 text-stone-700">{t(action.descriptionKey)}</p>
-                {action.metaKey ? (
-                  <div className="mt-4 flex items-center gap-4">
-                    <div className="h-1.5 flex-1 rounded-full bg-stone-200">
-                      <div className="h-full w-7/12 rounded-full bg-primary-600" />
-                    </div>
-                    <span className="text-xs text-stone-700">{t(action.metaKey)}</span>
-                  </div>
-                ) : null}
-                {action.badgeKey ? <Badge className="mt-3 w-fit" tone="primary">{t(action.badgeKey)}</Badge> : null}
-                <Link
-                  className={`mt-auto inline-flex min-h-8 w-fit items-center justify-center gap-2 rounded-md border px-3 py-1.5 text-xs font-bold transition-colors ${actionButtonTone(action.tone)}`}
-                  href={action.href}
-                >
-                  {t(action.ctaKey)} <span aria-hidden="true">&gt;</span>
-                </Link>
-              </div>
-            </div>
-          </article>
-        ))}
-      </div>
+              {item.label}
+            </Link>
+          ))}
+        </nav>
+      </aside>
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <article className="relative overflow-hidden rounded-xl border border-stone-200 bg-white p-5 shadow-[0_8px_22px_rgba(67,61,56,0.08)]">
+      <div className="relative grid gap-4 overflow-hidden">
+        <EyeDecoration />
+        <div className="relative z-10">
+          <h1 className="font-serif text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
+            {t("patientDashboard.hello", { name: firstName })}
+          </h1>
+          <p className="mt-1 text-sm text-stone-600">{t("patientDashboard.todayOverview")}</p>
+        </div>
+
+        <div className="relative z-10 grid gap-4 lg:grid-cols-3">
+          {primaryActions.map((action) => (
+            <DashboardActionCard key={action.titleKey} action={action} t={t} featured />
+          ))}
+        </div>
+
+        <div className="relative z-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          {secondaryActions.map((action) => (
+            <DashboardActionCard key={action.titleKey} action={action} t={t} />
+          ))}
+        </div>
+
+      <div className="grid gap-5 lg:grid-cols-3">
+        <article className="relative overflow-hidden rounded-xl border border-stone-200 bg-white p-5 shadow-[0_12px_28px_rgba(58,58,58,0.08)]">
           <div className="mb-3 flex items-start gap-3">
-            <span className="grid size-9 shrink-0 place-items-center rounded-full bg-primary-50 text-primary-700 ring-1 ring-primary-100">
+            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary-700 text-white ring-1 ring-primary-100">
               <DashboardIcon icon="calendar" />
             </span>
             <div>
-              <h2 className="text-lg font-bold text-foreground">{t("patientDashboard.upcomingAppointment")}</h2>
-              <p className="mt-1 text-sm text-stone-700">{t("patientDashboard.nextAppointment")}</p>
+              <h2 className="text-base font-bold text-foreground">{t("patientDashboard.upcomingAppointment")}</h2>
+              <p className="mt-1 text-xs text-stone-700">{t("patientDashboard.nextAppointment")}</p>
             </div>
           </div>
           <div className="relative z-10 mt-4 rounded-lg border border-stone-200 bg-white/90 p-4">
@@ -169,14 +199,14 @@ export default function PatientDashboardPage() {
           <CalendarDecoration />
         </article>
 
-        <article className="relative overflow-hidden rounded-xl border border-stone-200 bg-white p-5 shadow-[0_8px_22px_rgba(67,61,56,0.08)]">
+        <article className="relative overflow-hidden rounded-xl border border-stone-200 bg-white p-5 shadow-[0_12px_28px_rgba(58,58,58,0.08)]">
           <div className="mb-3 flex items-start gap-3">
-            <span className="grid size-11 shrink-0 place-items-center rounded-full bg-primary-600 text-white">
+            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary-700 text-white">
               <DashboardIcon icon="pulse" />
             </span>
             <div>
-              <h2 className="text-lg font-bold text-foreground">{t("patientDashboard.symptomTracker")}</h2>
-              <p className="mt-1 text-sm text-stone-700">{t("patientDashboard.recentActivity")}</p>
+              <h2 className="text-base font-bold text-foreground">{t("patientDashboard.symptomTracker")}</h2>
+              <p className="mt-1 text-xs text-stone-700">{t("patientDashboard.recentActivity")}</p>
             </div>
           </div>
           <Badge className="mt-2 w-fit" tone="accent">{t("status.In progress")}</Badge>
@@ -193,14 +223,14 @@ export default function PatientDashboardPage() {
           <WaveDecoration />
         </article>
 
-        <article className="relative overflow-hidden rounded-xl border border-stone-200 bg-white p-5 shadow-[0_8px_22px_rgba(67,61,56,0.08)]">
+        <article className="relative overflow-hidden rounded-xl border border-stone-200 bg-white p-5 shadow-[0_12px_28px_rgba(58,58,58,0.08)]">
           <div className="mb-3 flex items-start gap-3">
-            <span className="grid size-11 shrink-0 place-items-center rounded-full bg-primary-600 text-white">
+            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-primary-700 text-white">
               <DashboardIcon icon="document" />
             </span>
             <div>
-              <h2 className="text-lg font-bold text-foreground">{t("patientDashboard.latestResult")}</h2>
-              <p className="mt-1 text-sm text-stone-700">{t("patientDashboard.resultCopy")}</p>
+              <h2 className="text-base font-bold text-foreground">{t("patientDashboard.latestResult")}</h2>
+              <p className="mt-1 text-xs text-stone-700">{t("patientDashboard.resultCopy")}</p>
             </div>
           </div>
           <Badge className="mt-2 w-fit" tone="primary">{t("mock.severityLabel")}</Badge>
@@ -212,7 +242,7 @@ export default function PatientDashboardPage() {
         </article>
       </div>
 
-      <section className="rounded-xl border border-primary-100 bg-primary-50 p-4 shadow-sm">
+      <section className="rounded-xl border border-primary-100 bg-primary-50/80 p-4 shadow-sm">
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {trustItems.map((item) => (
             <div key={item.titleKey} className="flex gap-4 xl:border-r xl:border-primary-100 xl:pr-5 last:xl:border-r-0">
@@ -227,7 +257,52 @@ export default function PatientDashboardPage() {
           ))}
         </div>
       </section>
+      </div>
     </section>
+  );
+}
+
+type DashboardAction = (typeof actionCards)[number];
+
+function DashboardActionCard({
+  action,
+  t,
+  featured = false,
+}: {
+  action: DashboardAction;
+  t: (key: string, values?: Record<string, string | number>) => string;
+  featured?: boolean;
+}) {
+  return (
+    <article
+      className={`rounded-xl border border-stone-200 bg-white shadow-[0_12px_28px_rgba(58,58,58,0.08)] ${
+        featured ? "min-h-[12.5rem] p-6" : "min-h-[9.5rem] p-5"
+      }`}
+    >
+      <div className={featured ? "flex h-full flex-col" : "grid h-full grid-cols-[2.75rem_1fr] gap-4"}>
+        <span className={`grid shrink-0 place-items-center rounded-xl ${featured ? "size-12" : "size-11"} ${iconTone(action.tone)}`}>
+          <DashboardIcon icon={action.icon} />
+        </span>
+        <div className={`${featured ? "mt-4" : ""} flex min-w-0 flex-1 flex-col`}>
+          <h2 className={`${featured ? "text-base" : "text-sm"} font-bold text-foreground`}>{t(action.titleKey)}</h2>
+          <p className={`${featured ? "mt-2" : "mt-1"} text-xs leading-5 text-stone-600`}>{t(action.descriptionKey)}</p>
+          {action.metaKey ? (
+            <div className="mt-4 flex items-center gap-4">
+              <div className="h-1.5 flex-1 rounded-full bg-stone-200">
+                <div className="h-full w-7/12 rounded-full bg-primary-700" />
+              </div>
+              <span className="text-xs text-stone-700">{t(action.metaKey)}</span>
+            </div>
+          ) : null}
+          <Link
+            className={`mt-auto inline-flex min-h-8 w-fit items-center justify-center gap-2 rounded-md border px-3 py-1.5 text-xs font-bold transition-colors ${actionButtonTone(action.tone)}`}
+            href={action.href}
+          >
+            {t(action.ctaKey)} <span aria-hidden="true">&gt;</span>
+          </Link>
+        </div>
+      </div>
+    </article>
   );
 }
 
@@ -292,7 +367,26 @@ function ResultDecoration() {
   );
 }
 
+function EyeDecoration() {
+  return (
+    <svg aria-hidden="true" className="pointer-events-none absolute right-2 top-0 hidden h-28 w-56 text-primary-700 opacity-10 lg:block" viewBox="0 0 240 120" fill="none">
+      <path d="M20 62c27-33 62-49 100-49s73 16 100 49c-27 30-60 45-100 45S47 92 20 62Z" stroke="currentColor" strokeWidth="4" />
+      <circle cx="120" cy="62" r="24" stroke="currentColor" strokeWidth="4" />
+      <circle cx="120" cy="62" r="8" fill="currentColor" />
+      <path d="M120 0v14M120 110v10M62 18l9 12M178 18l-9 12M223 38l-13 7M17 38l13 7" stroke="currentColor" strokeLinecap="round" strokeWidth="3" />
+    </svg>
+  );
+}
+
 function DashboardIcon({ icon }: { icon: string }) {
+  if (icon === "grid") {
+    return (
+      <svg aria-hidden="true" className="size-7" viewBox="0 0 24 24" fill="none">
+        <path d="M5 5h5v5H5V5ZM14 5h5v5h-5V5ZM5 14h5v5H5v-5ZM14 14h5v5h-5v-5Z" stroke="currentColor" strokeLinejoin="round" strokeWidth="2" />
+      </svg>
+    );
+  }
+
   if (icon === "calendar") {
     return (
       <svg aria-hidden="true" className="size-7" viewBox="0 0 24 24" fill="none">
